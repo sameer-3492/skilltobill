@@ -4,7 +4,10 @@ services:
     env: static
     buildCommand: ""
     publishPath: .
+    headers:
+      - for: "/*.css"
+        values:
+          Content-Type: "text/css"
     routes:
       - path: /*
         rewrite: /home.html
-    
