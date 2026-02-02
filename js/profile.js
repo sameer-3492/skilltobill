@@ -2,7 +2,7 @@
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "signup-login.html";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://skilltobill-b.onrender.com/api";
 
 // Load dashboard content based on role
 async function loadDashboard(role) {
