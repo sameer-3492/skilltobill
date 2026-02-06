@@ -1,227 +1,249 @@
-// signup.js
-console.log('Signup script loaded');
-const loginTab = document.getElementById('loginTab');
-const signupTab = document.getElementById('signupTab');
-const loginFormContainer = document.getElementById('loginFormContainer');
-const signupFormContainer = document.getElementById('signupFormContainer');
+// SkillToBill Signup/Login Script
 
-function showLogin() {
+// ========== GLOBAL TOAST HELPER ==========
+function showToast(type = 'info', message = '') {
+  const toastId = 'global-toast-' + Date.now();
+  const toast = document.createElement('div');
+  toast.id = toastId;
+  toast.className = `global-toast global-toast-${type}`;
+  toast.textContent = message;
+  
+  // Inject CSS if not already present
+  if (!document.getElementById('toast-styles')) {
+    const style = document.createElement('style');
+    style.id = 'toast-styles';
+    style.textContent = `
+      .global-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInUp 0.3s ease-out;
+      }
+      .global-toast-success {
+        background: #10b981;
+        color: white;
+      }
+      .global-toast-error {
+        background: #ef4444;
+        color: white;
+      }
+      .global-toast-info {
+        background: #3b82f6;
+        color: white;
+      }
+      @keyframes slideInUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @media (max-width: 480px) {
+        .global-toast {
+          bottom: 16px;
+          right: 16px;
+          left: 16px;
+          max-width: none;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const loginTab = document.getElementById('loginTab');
+  const signupTab = document.getElementById('signupTab');
+  const loginFormContainer = document.getElementById('loginFormContainer');
+  const signupFormContainer = document.getElementById('signupFormContainer');
+  const signupRoleSelect = document.getElementById('signupRole');
+  const categoryContainer = document.getElementById('categoryContainer');
+
+  // Tab switching
+  function showLogin() {
     loginTab.classList.add('active');
     signupTab.classList.remove('active');
     loginFormContainer.style.display = 'block';
     signupFormContainer.style.display = 'none';
     clearMessages();
-}
+  }
 
-function showSignup() {
+  function showSignup() {
     signupTab.classList.add('active');
     loginTab.classList.remove('active');
     signupFormContainer.style.display = 'block';
     loginFormContainer.style.display = 'none';
     clearMessages();
-}
+  }
 
-loginTab.addEventListener('click', showLogin);
-signupTab.addEventListener('click', showSignup);
-document.getElementById('toSignup').addEventListener('click', showSignup);
-document.getElementById('toLogin').addEventListener('click', showLogin);
+  loginTab.addEventListener('click', showLogin);
+  signupTab.addEventListener('click', showSignup);
+  document.getElementById('toSignup')?.addEventListener('click', showSignup);
+  document.getElementById('toLogin')?.addEventListener('click', showLogin);
 
-// Show category select for earners with animation
-document.getElementById('signupRole').addEventListener('change', (e) => {
-    const categorySelect = document.getElementById('signupCategory');
-    console.log('categorySelect element:', categorySelect);
-    console.log('Role changed to', e.target.value);
-    categorySelect.required = e.target.value === 'earner';
-});
+  // Show category select for earners
+  signupRoleSelect?.addEventListener('change', (e) => {
+    categoryContainer.style.display = e.target.value === 'earner' ? 'block' : 'none';
+    document.getElementById('signupCategory').required = e.target.value === 'earner';
+  });
 
-// Password visibility toggles
-function togglePasswordVisibility(targetId, btn) {
+  // Password visibility toggle
+  function togglePasswordVisibility(targetId, btn) {
     const input = document.getElementById(targetId);
     if (!input) return;
-    const eyeSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
-    const eyeOffSVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.86 21.86 0 0 1 5.06-6.06"></path><path d="M1 1l22 22"></path></svg>';
+    
     if (input.type === 'password') {
-        input.type = 'text';
-        btn.innerHTML = eyeOffSVG;
-        btn.setAttribute('aria-label', 'Hide password');
+      input.type = 'text';
+      btn.setAttribute('aria-label', 'Hide password');
     } else {
-        input.type = 'password';
-        btn.innerHTML = eyeSVG;
-        btn.setAttribute('aria-label', 'Show password');
+      input.type = 'password';
+      btn.setAttribute('aria-label', 'Show password');
     }
-}
+  }
 
-// Handle clicks on the button or SVG inside it using closest()
-document.addEventListener('click', (e) => {
-    const btn = e.target.closest && e.target.closest('.toggle-password');
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-password');
     if (btn) {
-        const target = btn.getAttribute('data-target');
-        togglePasswordVisibility(target, btn);
+      const target = btn.getAttribute('data-target');
+      togglePasswordVisibility(target, btn);
     }
-});
+  });
 
-// Clear messages
-function clearMessages() {
-    const messages = document.querySelectorAll('.message');
-    messages.forEach(msg => msg.remove());
-}
+  // Message handling
+  function clearMessages() {
+    document.querySelectorAll('.message').forEach(msg => msg.remove());
+  }
 
-// Show message
-function showMessage(message, type = 'error') {
+  function showMessage(message, type = 'error') {
     clearMessages();
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${type}`;
     msgDiv.textContent = message;
-    document.querySelector('.container').prepend(msgDiv);
+    document.querySelector('.container').insertBefore(msgDiv, document.querySelector('.tabs'));
     setTimeout(() => msgDiv.remove(), 5000);
-}
+  }
 
-// Set loading state
-function setLoading(button, loading) {
+  // Loading state
+  function setLoading(button, loading) {
     if (loading) {
-        button.classList.add('loading');
-        button.disabled = true;
-        button.textContent = '';
+      button.classList.add('loading');
+      button.disabled = true;
+      button.textContent = '';
     } else {
-        button.classList.remove('loading');
-        button.disabled = false;
-        button.textContent = button === document.querySelector('#signupForm button[type="submit"]') ? 'Signup' : 'Login';
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.textContent = button.closest('#signupForm') ? 'Sign Up' : 'Login';
     }
-}
+  }
 
-// Backend URL
-const BASE_URL = 'https://skilltobill-b.onrender.com/api/auth';
+  const BASE_URL = 'https://skilltobill-b.onrender.com/api/auth';
 
-/* ===================== SIGNUP ===================== */
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
+  // Signup Form
+  document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('Signup submit triggered');
-
     const submitBtn = e.target.querySelector('button[type="submit"]');
     setLoading(submitBtn, true);
 
     const data = {
-        name: document.getElementById('signupName').value.trim(),
-        email: document.getElementById('signupEmail').value.trim(),
-        phone: document.getElementById('signupPhone').value.trim(),
-        password: document.getElementById('signupPassword').value,
-        role: document.getElementById('signupRole').value
+      name: document.getElementById('signupName').value.trim(),
+      email: document.getElementById('signupEmail').value.trim(),
+      phone: document.getElementById('signupPhone').value.trim(),
+      password: document.getElementById('signupPassword').value,
+      role: document.getElementById('signupRole').value
     };
-        console.log('Signup data:', data);
-        window.lastSignupData = data;
 
     if (data.role === 'earner') {
-        data.category = document.getElementById('signupCategory').value;
+      data.category = document.getElementById('signupCategory').value;
+      if (!data.category) {
+        showToast('error', 'Please select a service category');
+        setLoading(submitBtn, false);
+        return;
+      }
     }
 
-    // Basic validation
     if (!data.name || !data.email || !data.phone || !data.password || !data.role) {
-        showMessage('Please fill in all required fields');
-        setLoading(submitBtn, false);
-        return;
+      showToast('error', 'Please fill in all required fields');
+      setLoading(submitBtn, false);
+      return;
     }
-
-    if (data.role === 'earner' && !data.category) {
-        showMessage('Please select a category for earners');
-        setLoading(submitBtn, false);
-        return;
-    }
-
-    console.log('Signup data:', data);
 
     try {
-        const res = await fetch(`${BASE_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+      const res = await fetch(`${BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
 
-        const result = await res.json();
-        console.log('Signup:', res.status, result);
+      const result = await res.json();
 
-        if (!res.ok) {
-            showMessage(result.message || result.error || 'Signup failed');
-            setLoading(submitBtn, false);
-            return;
-        }
-
-        console.log('Signup success, token:', result.token, 'user:', result.user);
-
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-
-        showMessage('Signup successful! Redirecting...', 'success');
-
-        setTimeout(() => {
-            const href = result.user.role === 'client' ? 'client-dashboard.html' : 'earner-dashboard.html';
-            console.log('Redirecting to', href);
-            window.location.href = href;
-        }, 1000);
-
-    } catch (err) {
-        console.error('Signup fetch error:', err);
-        showMessage('Network error. Please check your connection.');
-    } finally {
+      if (!res.ok) {
+        showToast('error', result.message || 'Signup failed');
         setLoading(submitBtn, false);
+        return;
+      }
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      showToast('success', 'Account created! Redirecting...');
+
+      setTimeout(() => {
+        window.location.href = 'profile.html';
+      }, 1500);
+    } catch (err) {
+      showToast('error', 'Network error. Please try again.');
+      setLoading(submitBtn, false);
     }
-});
+  });
 
-/* ===================== LOGIN ===================== */
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  // Login Form
+  document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const submitBtn = e.target.querySelector('button[type="submit"]');
     setLoading(submitBtn, true);
 
     const data = {
-        email: document.getElementById('loginEmail').value.trim(),
-        password: document.getElementById('loginPassword').value
+      email: document.getElementById('loginEmail').value.trim(),
+      password: document.getElementById('loginPassword').value
     };
 
-    // Basic validation
     if (!data.email || !data.password) {
-        showMessage('Please enter both email and password');
-        setLoading(submitBtn, false);
-        return;
+      showToast('error', 'Please enter email and password');
+      setLoading(submitBtn, false);
+      return;
     }
 
     try {
-        const res = await fetch(`${BASE_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
 
-        const result = await res.json();
-        console.log('Login:', res.status, result);
+      const result = await res.json();
 
-        if (!res.ok) {
-            showMessage(result.message || result.error || 'Login failed');
-            setLoading(submitBtn, false);
-            return;
-        }
-
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-
-        showMessage('Login successful! Redirecting...', 'success');
-
-        setTimeout(() => {
-            if (result.user.role === 'client') {
-                window.location.href = 'client-dashboard.html';
-            } else {
-                window.location.href = 'earner-dashboard.html';
-            }
-        }, 1000);
-
-    } catch (err) {
-        console.error('Login fetch error:', err);
-        showMessage('Network error. Please check your connection.');
-    } finally {
+      if (!res.ok) {
+        showToast('error', result.message || 'Login failed');
         setLoading(submitBtn, false);
+        return;
+      }
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      showToast('success', 'Welcome back! Redirecting...');
+
+      setTimeout(() => {
+        window.location.href = 'profile.html';
+      }, 1500);
+    } catch (err) {
+      showToast('error', 'Network error. Please try again.');
+      setLoading(submitBtn, false);
     }
+  });
 });
